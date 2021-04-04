@@ -12,7 +12,7 @@ class StopwatchWidget extends StatefulWidget {
 class _StopwatchWidgetState extends State<StopwatchWidget> {
   Stopwatch stopwatch = Stopwatch();
   late Timer timer;
-  String time = "00:00:00";
+  ValueNotifier<String> time = ValueNotifier<String>("00:00:00");
 
   @override
   void initState() {
@@ -23,17 +23,20 @@ class _StopwatchWidgetState extends State<StopwatchWidget> {
     String twoDigits(int n) => n.toString().padLeft(2, "0");
     String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
     String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
-    return "${twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds";
+    final ms = (duration.inMilliseconds.remainder(1000) / 100).floor();
+    return "${twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds:$ms";
   }
 
   void startTimer() {
-    stopwatch.start();
-    timer = Timer.periodic(
-      Duration(seconds: 1),
-      (timer) => setState(() {
-        time = formatDuration(stopwatch.elapsed);
-      }),
-    );
+    if (!stopwatch.isRunning) {
+      stopwatch.start();
+      timer = Timer.periodic(
+        Duration(milliseconds: 100),
+        (timer) => setState(() {
+          time.value = formatDuration(stopwatch.elapsed);
+        }),
+      );
+    }
   }
 
   void stopTimer() {
@@ -45,7 +48,7 @@ class _StopwatchWidgetState extends State<StopwatchWidget> {
     stopwatch.reset();
     timer.cancel();
     setState(() {
-      time = stopwatch.elapsed.inSeconds.toString();
+      time.value = formatDuration(stopwatch.elapsed);
     });
   }
 
@@ -70,11 +73,16 @@ class _StopwatchWidgetState extends State<StopwatchWidget> {
       ),
       child: Column(
         children: [
-          Text(
-            time,
-            style: TextStyle(
-              fontSize: 40,
-            ),
+          ValueListenableBuilder(
+            builder: (BuildContext context, String value, Widget? child) {
+              return Text(
+                value,
+                style: TextStyle(
+                  fontSize: 40,
+                ),
+              );
+            },
+            valueListenable: time,
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -83,7 +91,7 @@ class _StopwatchWidgetState extends State<StopwatchWidget> {
               makeButton("Stop", () => stopTimer()),
               makeButton("Reset", () => resetTimer()),
             ],
-          )
+          ),
         ],
       ),
     );

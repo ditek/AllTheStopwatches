@@ -6,11 +6,10 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Stopwatches',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
@@ -44,8 +43,8 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: Container(
-        child: Column(
-          children: timers,
+        child: ListView(
+          children: [...timers],
         ),
       ),
       floatingActionButton: FloatingActionButton(
